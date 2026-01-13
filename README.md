@@ -1,4 +1,8 @@
-# unpuck_all_file
+# batch_unpuck
+
+> support hybrid .rar, .zip, .7z, .zip.001, .7z.001, .rar.001, .part1.rar, .part01.rar, .part001.rar, .z01, .001
+
+[English Version](#batch_unpuck_en)
 
 ### 📦 批量解压Python脚本(支持各种格式压缩包一键扫描解压，truenas可用)
 
@@ -48,3 +52,55 @@ python3 flatten_dir.py <目标目录>
 ```
 
 # ⚠️ 使用时尽量将目标文件夹，输出路径，另存为副本在单独的文件夹环境中处理以免出现bug导致数据丢失，使用前复制少量需要处理的文件单独测试脚本是否符合预期再正式使用。
+
+# batch_unpuck_en
+
+### 📦 Batch Decompression Python Scripts (Supports one-click scanning and decompression for various archive formats, compatible with TrueNAS)
+
+### This toolkit contains two core scripts designed to provide an automated end-to-end solution from archive extraction to directory structure optimization, balancing high performance with data safety. Dependencies: `rich`, `7z`.
+---
+
+## 🚀 1. `unpack.py` - Parallel Reliable Decompression
+A high-performance decompression tool based on the `7z` engine, ensuring library integrity through a "Pre-process -> Extract -> Atomic Delivery" workflow.
+<img width="1108" height="488" alt="image" src="https://github.com/user-attachments/assets/ca292327-16f2-40be-9cb9-2a82ba64b727" />
+
+### 🌟 Key Features
+- **Two-Stage Reliable Decompression**:
+    - **Temporary Buffer**: All files are first extracted to a `xxx.out_tmp` directory.
+    - **Success Signature**: After 100% successful extraction, a `.zipp_done` marker is written, followed by an atomic directory rename.
+- **Smart Multi-Volume Alignment**: Uses multiple regex sets to automatically associate and initiate extraction for dozens of multi-volume formats like `.001`, `.part1.rar`, `.z01`, etc.
+- **Conflict Prevention Strategy**: Automatically cleans up residual files with the same name before extraction (please rename existing files in the output directory to avoid accidental deletion), ensuring a clean delivery environment.
+- **Real-time Monitoring**: Uses `rich` to render an overall progress bar and detailed file scanning statistics.
+- **Resume Support**: Automatically skips tasks that already contain the `.zipp_done` marker.
+
+### 🛠️ Usage
+```bash
+python3 unpack.py <input_directory> [-o <output_directory>] [-t <thread_count>]
+```
+<img width="572" height="376" alt="image" src="https://github.com/user-attachments/assets/6c1fcfb1-1301-482d-b079-3ef182897f0d" />
+
+
+---
+
+## 🪄 2. `flatten_dir.py` - Project-Level Deep Flattening
+Specifically solves the "nested folder" issue (folders inside folders with the same name) created after decompression by lifting files upwards to flatten the directory.
+
+<img width="776" height="238" alt="image" src="https://github.com/user-attachments/assets/9a0f71df-20c1-442f-8090-17aa515ed38f" />
+
+### 🌟 Key Features
+- **Project Structure Snapshot**: Generates a `[ProjectName].txt` inside each project before any operation, recording the full original tree structure including hidden files.
+- **Deep Recursive Convergence**: As long as a project directory contains only a single visible subfolder (with no other files present), the script will automatically dive in and lift the contents recursively until multiple items are encountered.
+- **Two-Stage Secure Move**:
+    - **Temporary Path Evasion**: Renames target subfolders with a random suffix during processing to completely release the original path occupation.
+    - **Zero-Loss Verification**: Perfroms a visible item count before deleting the sub-directory; if any items remain due to name conflicts, the original structure is restored to prevent data loss.
+- **High-Level Visual Feedback**: Features multi-color path displays (parent directories are greyed out, while the sub-directory being extracted is highlighted in dynamic colors based on depth).
+- **Lossless Priority**: All flattening operations include conflict detection; if a name collision occurs, the original nested structure is preserved.
+- **Reversibility**: The included `.txt` file provides a reference to the original physical layout of the project.
+  
+### 🛠️ Usage
+```bash
+python3 flatten_dir.py <target_directory>
+```
+
+# ⚠️ WARNING: When using these scripts, perform operations on copies in a separate environment to avoid data loss due to unexpected bugs. Always test with a small number of files to ensure the script meets your expectations before full production use.
+
